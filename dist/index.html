@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="按账户风险、手续费、滑点与交易所下单规则计算加密货币仓位。" />
+  <title>仓位计算器</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%23050505'/%3E%3Cpath d='M14 45V32h8v13zm14 0V21h8v24zm14 0V12h8v33z' fill='%23f5f5f5'/%3E%3Cpath d='M11 51h42' stroke='%232bc48a' stroke-width='3'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></div>
+        <div>
+          <h1>仓位计算器</h1>
+          <p>POSITION SIZING · RISK CONTROL</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <span class="status-pill"><span></span> 交易规则已内置 · 页面不联网</span>
+        <button class="ghost-button" id="openTutorial" type="button">新手教程</button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="panel input-panel" aria-labelledby="params-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">01 / 交易参数</p>
+            <h2 id="params-title">交易设置</h2>
+          </div>
+          <div class="heading-actions">
+            <button class="example-button" id="load300Example" type="button">载入 300U 教学示例</button>
+            <button class="reset-button" id="resetButton" type="button">恢复默认</button>
+          </div>
+        </div>
+        <a class="mobile-result-jump" href="#resultPanel">查看当前建议订单 ↓</a>
+
+        <form id="calculatorForm" novalidate>
+          <div class="form-stage">
+            <div class="stage-label"><span>01</span><div><b>合约与方向</b><small>交易平台、市场、标的及方向</small></div></div>
+          <div class="beginner-callout">
+            <b>输入说明</b>
+            <span>填写账户权益、单笔风险上限，以及计划的成交、止损和止盈价格。</span>
+          </div>
+          <div class="field-grid exchange-row">
+            <label class="field">
+              <span>交易所</span>
+              <select id="exchange">
+                <option value="binance">Binance</option>
+                <option value="okx">OKX</option>
+                <option value="bitget">Bitget</option>
+                <option value="bybit">Bybit</option>
+                <option value="hyperliquid">Hyperliquid</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>市场</span>
+              <select id="market">
+                <option value="perp">U 本位永续</option>
+                <option value="spot">现货</option>
+              </select>
+            </label>
+            <label class="field symbol-field">
+              <span>交易币种</span>
+              <select id="symbolPreset">
+                <optgroup label="主流币"><option value="BTC">BTC 比特币</option><option value="ETH">ETH 以太坊</option><option value="SOL">SOL</option><option value="XRP">XRP</option><option value="BNB">BNB</option></optgroup>
+                <optgroup label="热门币"><option value="DOGE">DOGE</option><option value="ADA">ADA</option><option value="AVAX">AVAX</option><option value="LINK">LINK</option><option value="SUI">SUI</option><option value="TRX">TRX</option><option value="LTC">LTC</option><option value="BCH">BCH</option><option value="DOT">DOT</option><option value="APT">APT</option><option value="NEAR">NEAR</option><option value="UNI">UNI</option><option value="AAVE">AAVE</option><option value="OP">OP</option><option value="ARB">ARB</option><option value="PEPE">PEPE</option><option value="WIF">WIF</option><option value="HYPE">HYPE</option></optgroup>
+                <option value="custom">其他币种（手动输入）</option>
+              </select>
+            </label>
+          </div>
+
+          <label class="field custom-symbol-field" id="customSymbolField" hidden>
+            <span>输入币种简称</span>
+            <div class="symbol-input"><input id="symbol" value="BTC" autocomplete="off" placeholder="例如 TAO" /><b id="quoteLabel">USDT</b></div>
+          </label>
+
+          <div class="rules-bar">
+            <div>
+              <span id="rulesStatus" class="rules-title">使用内置交易规则</span>
+              <small id="rulesSummary">数量步长 0.001 BTC · 最小名义价值 100 USDT</small>
+            </div>
+          </div>
+
+          <fieldset class="direction-group">
+            <legend>方向</legend>
+            <label><input type="radio" name="direction" value="auto" checked /><span>自动判断</span></label>
+            <label><input type="radio" name="direction" value="long" /><span>做多</span></label>
+            <label><input type="radio" name="direction" value="short" /><span>做空</span></label>
+          </fieldset>
+          </div>
+
+          <div class="form-stage">
+          <div class="stage-label"><span>02</span><div><b>资金与价格</b><small>按风险上限反推订单规模</small></div></div>
+          <div class="field-grid two-col">
+            <label class="field">
+              <span>开仓订单类型</span>
+              <select id="entryOrderType"><option value="taker">市价单 / Taker</option><option value="maker">限价挂单 / Maker</option></select>
+              <small>市价单必须把下方开仓价更新为交易所当前价</small>
+            </label>
+            <label class="field money-field">
+              <span class="label-row">账户权益 <button class="help-button" type="button" data-help="equity">?</button></span>
+              <div class="input-wrap"><input id="equity" type="number" min="0" step="any" value="10000" /><b>USDT</b></div>
+              <small>你准备用来交易的全部本金，例如 300U 就填 300</small>
+            </label>
+            <label class="field">
+              <span class="label-row">单笔风险 <button class="help-button" type="button" data-help="risk">?</button></span>
+              <div class="input-wrap"><input id="riskPct" type="number" min="0" step="0.1" value="1" /><b>%</b></div>
+              <small>止损后最多亏本金的百分比，新手常用 0.5%～1%</small>
+              <span class="mini-presets"><button type="button" data-risk="0.5">保守 0.5%</button><button type="button" data-risk="1">常用 1%</button><button type="button" data-risk="2">进取 2%</button></span>
+            </label>
+            <label class="field">
+              <span class="label-row">预计成交价 / 限价 <button class="help-button" type="button" data-help="entry">?</button></span>
+              <div class="input-wrap"><input id="entry" type="number" min="0" step="any" value="100000" /><b>USDT</b></div>
+              <small>市价单填交易所此刻价格；限价单填你的挂单价格</small>
+            </label>
+            <label class="field stop-field">
+              <span class="label-row">止损价 <button class="help-button" type="button" data-help="stop">?</button></span>
+              <div class="input-wrap"><input id="stop" type="number" min="0" step="any" value="98000" /><b>USDT</b></div>
+              <small>价格走错时认亏离场的位置</small>
+            </label>
+            <label class="field target-field">
+              <span class="label-row">止盈价 <button class="help-button" type="button" data-help="target">?</button></span>
+              <div class="input-wrap"><input id="target" type="number" min="0" step="any" value="106000" /><b>USDT</b></div>
+              <small>价格走对时计划落袋为安的位置</small>
+            </label>
+            <label class="field">
+              <span class="label-row">杠杆倍数 <button class="help-button" type="button" data-help="leverage">?</button></span>
+              <div class="input-wrap"><input id="leverage" type="number" min="1" step="1" value="5" /><b>×</b></div>
+              <small>杠杆只改变占用保证金，不应该改变你愿意亏的钱</small>
+            </label>
+          </div>
+
+          <details class="advanced" id="advancedPanel">
+            <summary>精细成本与下单规则 <span>建议首次核对</span></summary>
+            <div class="advanced-content">
+              <div class="field-grid two-col compact-grid">
+                <label class="field">
+                  <span>止损成交</span>
+                  <select id="exitOrderType"><option value="taker">Taker / 市价</option><option value="maker">Maker / 挂单</option></select>
+                </label>
+                <label class="field">
+                  <span>开仓费率</span>
+                  <div class="input-wrap"><input id="entryFee" type="number" min="0" step="0.001" value="0.05" /><b>%</b></div>
+                </label>
+                <label class="field">
+                  <span>平仓费率</span>
+                  <div class="input-wrap"><input id="exitFee" type="number" min="0" step="0.001" value="0.05" /><b>%</b></div>
+                </label>
+                <label class="field">
+                  <span>单边滑点预估</span>
+                  <div class="input-wrap"><input id="slippagePct" type="number" min="0" step="0.01" value="0.03" /><b>%</b></div>
+                </label>
+                <label class="field">
+                  <span>预计资金费净成本</span>
+                  <div class="input-wrap"><input id="fundingCost" type="number" step="0.01" value="0" /><b>USDT</b></div>
+                </label>
+                <label class="field">
+                  <span>已占用风险</span>
+                  <div class="input-wrap"><input id="existingRisk" type="number" min="0" step="any" value="0" /><b>USDT</b></div>
+                </label>
+                <label class="field">
+                  <span>最大保证金占比</span>
+                  <div class="input-wrap"><input id="maxMarginPct" type="number" min="1" max="100" step="1" value="30" /><b>%</b></div>
+                </label>
+                <label class="field">
+                  <span>最小数量</span>
+                  <input id="minQty" type="number" min="0" step="any" value="0.001" />
+                </label>
+                <label class="field">
+                  <span>数量步长</span>
+                  <input id="qtyStep" type="number" min="0" step="any" value="0.001" />
+                </label>
+                <label class="field">
+                  <span>最小名义价值</span>
+                  <div class="input-wrap"><input id="minNotional" type="number" min="0" step="any" value="100" /><b>USDT</b></div>
+                </label>
+                <label class="field">
+                  <span>该标的最大杠杆</span>
+                  <div class="input-wrap"><input id="maxLeverage" type="number" min="1" step="1" value="125" /><b>×</b></div>
+                </label>
+                <label class="field">
+                  <span>保证金模式</span>
+                  <select id="marginMode"><option value="isolated">逐仓（可估算强平）</option><option value="cross">全仓（强平以交易所为准）</option><option value="spot">现货不适用</option></select>
+                </label>
+                <label class="field">
+                  <span>维持保证金率 MMR</span>
+                  <div class="input-wrap"><input id="maintenanceMarginRate" type="number" min="0" step="0.01" value="0.4" /><b>%</b></div>
+                </label>
+                <label class="field">
+                  <span>额外加入保证金</span>
+                  <div class="input-wrap"><input id="extraMargin" type="number" min="0" step="any" value="0" /><b>USDT</b></div>
+                </label>
+                <label class="field">
+                  <span>维持保证金速算扣除额</span>
+                  <div class="input-wrap"><input id="maintenanceDeduction" type="number" min="0" step="any" value="0" /><b>USDT</b></div>
+                </label>
+              </div>
+              <p class="fineprint">费率、维持保证金率和风险档位会随账户与仓位变化。内置值只是常用参考，建议打开交易所的费率页、合约规则和下单预览核对；强平价只在逐仓、单一仓位、无额外账户影响时进行估算。</p>
+            </div>
+          </details>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel result-panel" id="resultPanel" aria-live="polite" aria-labelledby="result-title">
+        <div class="section-heading result-heading">
+          <div>
+            <p class="eyebrow">02 / 计算结果</p>
+            <h2 id="result-title">订单建议</h2>
+          </div>
+          <div class="result-actions"><button class="copy-result" id="copyResult" type="button">复制结果</button><span class="direction-badge long" id="directionBadge">做多 LONG</span></div>
+        </div>
+
+        <div id="fatalError" class="fatal-error" hidden></div>
+
+        <div id="resultContent">
+          <div class="primary-result order-ticket">
+            <div class="order-ticket-main">
+              <div class="result-kicker">ORDER TICKET · 按交易所字段填写</div>
+              <div class="order-options">
+                <article class="order-option recommended">
+                  <div><span id="quantityFieldLabel">交易所显示“数量 / Size”</span><small id="baseFieldHint">按币种数量填写</small></div>
+                  <strong id="quantityResult">0.473 BTC</strong>
+                  <button class="copy-order" id="copyBaseQty" type="button">复制币数</button>
+                </article>
+                <article class="order-option usdt-option">
+                  <div><span id="quoteOrderLabel">交易所显示“金额 / USDT”</span><small>按订单总价值填写</small></div>
+                  <strong id="usdtOrderResult">47,300.00 USDT</strong>
+                  <button class="copy-order" id="copyUsdtQty" type="button">复制金额</button>
+                </article>
+              </div>
+              <div class="order-field-guide">
+                <b>字段对应</b>
+                <span id="orderFieldGuide">输入框单位是 BTC、ETH 等币种，就填左边；只有输入框明确切换为 USDT/USDC 时才填右边。不要同时下两笔。</span>
+              </div>
+              <small class="rounding-note" id="roundingNote">已按 0.001 BTC 步长向下取整</small>
+            </div>
+            <div class="risk-ring" id="riskRing" style="--risk: 98.8deg">
+              <div><b id="riskUsedPct">98.8%</b><span>风险额度使用</span></div>
+            </div>
+          </div>
+
+          <div class="match-note">
+            <b>金额与币数的换算差异</b>
+            <p id="conversionExplain">稳定币金额会按实际成交价重新换算成币数，再按交易所精度向下取整。市价变化时，它不会和左侧币种数量完全相同；想精确控制币数，优先复制左侧。</p>
+          </div>
+
+          <div class="funds-guide">
+            <div><span>订单名义金额</span><b id="orderNotionalGuide">47,300.00 USDT</b><small>支持按 USDT 下单时填这个</small></div>
+            <div><span id="fundsNeededLabel">理论初始保证金 + 开仓费</span><b id="fundsNeededResult">9,483.65 USDT</b><small>交易所预览还会受实际成交价与账户模式影响</small></div>
+            <p><b>资金口径：</b>“USDT 下单金额”是订单名义价值；“保证金”是交易所暂时占用的本金。使用杠杆时，两者通常不相等。</p>
+          </div>
+
+          <div class="key-metrics">
+            <article><span>名义仓位</span><b id="notionalResult">47,300.00</b><small>USDT</small></article>
+            <article><span>预估保证金</span><b id="marginResult">9,460.00</b><small>USDT</small></article>
+            <article><span>止损总亏损</span><b id="lossResult">98.78</b><small>USDT</small></article>
+            <article><span>净盈亏比</span><b id="rrResult">2.70 : 1</b><small>扣除成本后</small></article>
+          </div>
+
+          <div class="price-card">
+            <div class="breakdown-head"><h3>关键价格一眼看懂</h3><span>强平以标记价格触发</span></div>
+            <div class="price-grid">
+              <article class="liq"><span>预估强平价</span><b id="liquidationResult">—</b><small id="liquidationNote">逐仓估算</small></article>
+              <article class="break-even"><span>损益两平价</span><b id="breakEvenResult">—</b><small>覆盖手续费与滑点</small></article>
+              <article class="entry-price"><span>你的开仓价</span><b id="entryPriceResult">—</b><small>计划入场</small></article>
+              <article class="target-price"><span>止盈后净赚</span><b id="profitHero">—</b><small>已扣交易成本</small></article>
+            </div>
+          </div>
+
+          <div class="breakdown-card">
+            <div class="breakdown-head">
+              <h3>风险拆解</h3>
+              <span id="riskBudgetLabel">风险预算 100.00 USDT</span>
+            </div>
+            <div class="stacked-bar" aria-hidden="true"><i id="priceRiskBar"></i><i id="feeRiskBar"></i><i id="slipRiskBar"></i></div>
+            <div class="legend">
+              <span><i class="price-dot"></i>价格止损 <b id="priceLoss">94.60</b></span>
+              <span><i class="fee-dot"></i>手续费 <b id="feeLoss">4.68</b></span>
+              <span><i class="slip-dot"></i>滑点/资金费 <b id="otherLoss">0.00</b></span>
+            </div>
+          </div>
+
+          <div class="details-grid">
+            <div class="detail-row"><span>止损距离</span><b id="stopDistance">2.0000%</b></div>
+            <div class="detail-row"><span>保证金占比</span><b id="marginShare">94.60%</b></div>
+            <div class="detail-row"><span>开仓手续费</span><b id="entryFeeAmount">23.65 USDT</b></div>
+            <div class="detail-row"><span>止损手续费</span><b id="stopFeeAmount">23.18 USDT</b></div>
+            <div class="detail-row"><span>止盈净利润</span><b id="profitResult">267.31 USDT</b></div>
+            <div class="detail-row"><span>止盈回报率</span><b id="roeResult">2.67%</b></div>
+          </div>
+
+          <div class="checks-card">
+            <div class="breakdown-head"><div><h3>下单核验</h3><p>错误项必须处理，提醒项需确认，绿色项已通过。</p></div><span id="checkCount">3 项提醒</span></div>
+            <ul id="checksList"></ul>
+          </div>
+
+          <p class="disclaimer">强平价是按逐仓、当前维持保证金率和单一仓位估算，不包含完整风险阶梯、标记价变化、其他仓位及账户权益变化。实际下单前请以交易所订单预览为最终准绳。</p>
+          <a class="mobile-result-jump back" href="#params-title">↑ 返回修改交易参数</a>
+        </div>
+      </section>
+    </main>
+
+    <section class="method-strip">
+      <div><span>计算口径</span><b>止损价差、双边费率与滑点共同计入风险，数量始终向下取整。</b></div>
+      <a href="#" id="openMethod">查看计算口径 →</a>
+    </section>
+
+    <template id="tutorialTemplate"><section class="tutorial-modal-content">
+      <div class="learning-head">
+        <div><p class="eyebrow">03 / 新手教程</p><h2>账户只有 300U，应该怎么填？</h2><p>下面是一个教学例子，不代表真实行情，也不是交易建议。</p></div>
+        <button class="example-button large" id="load300ExampleDialog" type="button">把这个例子填进计算器</button>
+      </div>
+      <div class="tutorial-flow">
+        <article><em>1</em><div><b>账户权益填 300</b><p>因为你的交易账户一共只有 300U。不要填你想开的仓位，也不要乘杠杆。</p></div></article>
+        <article><em>2</em><div><b>单笔风险填 1%</b><p>代表这笔交易止损后，计划最多亏 3U：300 × 1% = 3U。</p></div></article>
+        <article><em>3</em><div><b>填计划价格</b><p>示例：ETH 开仓 4,000，止损 3,920，止盈 4,240，使用 5 倍杠杆。</p></div></article>
+        <article><em>4</em><div><b>看交易所输入框的单位</b><p>显示 ETH、BTC 或“Size”，就抄币种数量；显示 USDT/USDC、金额或价值，就抄稳定币下单金额。不要把保证金填成下单金额。</p></div></article>
+      </div>
+
+      <div class="glossary-head"><h3>页面上的词都是什么意思？</h3><p>用最直白的话解释</p></div>
+      <div class="glossary-grid">
+        <article><b>交易所</b><p>你准备在哪个平台下单。不同平台的手续费、最小订单和数量精度不一样。</p></article>
+        <article><b>市场类型</b><p>现货是真正买入币；U 本位永续是用 USDT/USDC 结算、可以做多或做空的合约。</p></article>
+        <article><b>交易标的</b><p>你准备交易哪个币，例如 BTC、ETH。热门币可直接选，其他币选择“手动输入”。</p></article>
+        <article><b>账户权益</b><p>你账户里真正有多少钱。300U 就填 300，不要乘杠杆。</p></article>
+        <article><b>单笔风险</b><p>这笔单你最多愿意亏本金的百分之几。1% 不是价格跌 1%，而是账户最多亏 1%。</p></article>
+        <article><b>名义仓位</b><p>这笔订单控制了多大价值的币。用了杠杆后，它通常比保证金大。</p></article>
+        <article><b>USDT 下单金额</b><p>就是“币种数量 × 开仓价”，也叫名义金额。交易所若支持按金额下单，就填这个数，不要填保证金。</p></article>
+        <article><b>保证金</b><p>交易所暂时占用的本金。10 倍杠杆开 1,000U 名义仓位，大约占 100U 保证金。</p></article>
+        <article><b>止损价</b><p>判断错了就认亏退出的价格。它决定仓位能开多大，比杠杆更重要。</p></article>
+        <article><b>损益两平价</b><p>价格到这里，理论上刚好补回手续费和滑点，不赚也不亏。</p></article>
+        <article><b>预估强平价</b><p>保证金快不够时，交易所可能强制平仓的价格。它不是止损价，也不能代替止损。</p></article>
+        <article><b>盈亏比</b><p>冒 1U 风险，计划赚几 U。2:1 就是最多亏 1U、计划赚 2U。</p></article>
+        <article><b>维持保证金率</b><p>交易所要求仓位至少保留的保证金比例，会随币种和仓位大小变化。</p></article>
+        <article><b>滑点</b><p>行情太快时，实际成交价和你看到的价格之间的差。市价单尤其要留余量。</p></article>
+        <article><b>Maker / Taker</b><p>挂单等别人来成交通常是 Maker；立即吃掉盘口的市价单通常是 Taker，费率往往更高。</p></article>
+      </div>
+
+      <div class="advanced-guide-head">
+        <div><p class="eyebrow">04 / 精细设置</p><h3>“精细成本与下单规则”每一项怎么填？</h3></div>
+        <p>第一次使用可以先保留内置值；真正下单前，再按照你的账户费率和该合约的风险档位核对。</p>
+      </div>
+      <div class="tutorial-note"><b>先记住单位：</b><span>带“%”的框直接填百分数，例如费率 0.05% 就填 <strong>0.05</strong>，不能填 5，也不能填 0.0005；带“USDT”的框直接填金额。</span></div>
+      <dl class="advanced-guide-grid">
+        <div><dt>止损成交</dt><dd>告诉计算器止损单按哪种手续费计算。使用“止损市价单”或触发后立即成交，选 <b>Taker / 市价</b>；只有确认触发后挂出的限价单会留在盘口等待成交，才选 <b>Maker / 挂单</b>。新手通常选 Taker 更保守。</dd><small>常见填写：Taker / 市价</small></div>
+        <div><dt>开仓费率</dt><dd>开仓成交时交易所收取的手续费百分比。到交易所“费率等级 / 合约费率”查看你账户的 Maker 或 Taker 实际费率，并与上面的开仓订单类型对应。</dd><small>例如 Taker 费率 0.05%，这里填 0.05</small></div>
+        <div><dt>平仓费率</dt><dd>止损或止盈成交时收取的手续费百分比。应按照“止损成交”选择的类型填写；如果止损用市价单，就填写你的 Taker 费率。</dd><small>例如 Taker 费率 0.05%，这里填 0.05</small></div>
+        <div><dt>单边滑点预估</dt><dd>预留一次成交可能偏离计划价格的百分比。盘口深、成交活跃时可小一些；波动剧烈、币种冷门或仓位较大时要适当增加。计算器会同时考虑开仓和离场两边的滑点。</dd><small>流动性较好的主流币可先用 0.03；实际应结合盘口调整</small></div>
+        <div><dt>预计资金费净成本</dt><dd>预计持仓期间所有资金费合计多少 USDT。预计你要支付就填正数；预计会收到可以填负数。为了保守，负数不会拿来放大可开仓位，只会影响预估净利润。</dd><small>不跨资金费时间填 0；预计共支付 0.8U 就填 0.8</small></div>
+        <div><dt>已占用风险</dt><dd>其他持仓如果都打到各自止损，合计最多还会亏多少 USDT。系统会先从本次风险预算中扣掉它，避免多笔仓位同时止损时超出账户承受范围。</dd><small>没有其他仓位填 0；其他持仓最多还会亏 2U 就填 2</small></div>
+        <div><dt>最大保证金占比</dt><dd>最多允许这笔订单占用账户本金的百分之几。它是资金占用上限，不是单笔风险。数值越小，系统越可能主动把仓位压小，为补仓、费用和其他订单保留余额。</dd><small>300U 账户填 30，代表本单初始保证金最多约 90U</small></div>
+        <div><dt>最小数量</dt><dd>交易所允许提交的最小币种数量。页面内部统一按 BTC、ETH 等币种数量计算；如果交易所最终按“张”下单，请使用结果区换算后的张数。</dd><small>通常保留内置值；只有合约规则明确变化时才修改</small></div>
+        <div><dt>数量步长</dt><dd>下单数量每次允许增加多少。比如步长 0.001 BTC，只能下 0.001、0.002、0.003……计算器会始终向下取整，避免超过你的风险上限。</dd><small>从交易所该合约的“数量精度 / 下单步长”中查找</small></div>
+        <div><dt>最小名义价值</dt><dd>“币种数量 × 开仓价”必须达到的最低订单金额，不是最低保证金。订单低于这个数时，交易所通常会拒单。</dd><small>规则写最低订单价值 5 USDT，这里就填 5</small></div>
+        <div><dt>该标的最大杠杆</dt><dd>交易所允许这个币种、当前风险档位使用的最高杠杆，只用于检查你填的杠杆是否合法。它不是建议使用的杠杆，也不会让你应该承担更多风险。</dd><small>交易所最高允许 50×，这里填 50</small></div>
+        <div><dt>保证金模式</dt><dd><b>逐仓</b>只用分配给该仓位的保证金，页面可以做近似强平估算；<b>全仓</b>会受整个账户余额和其他仓位影响，页面不显示确定强平价；普通现货选“现货不适用”。</dd><small>想限制单仓影响范围时常用逐仓，但仍以交易所显示为准</small></div>
+        <div><dt>维持保证金率 MMR</dt><dd>仓位要保持不被强平所需的最低保证金比例。它会随币种、仓位大小和风险档位变化，应查交易所该合约当前档位。这里输入百分数。</dd><small>交易所显示 0.4%，这里填 0.4</small></div>
+        <div><dt>额外加入保证金</dt><dd>你打算在逐仓仓位中额外手动补入多少 USDT。它只用于调整预估强平价，不会自动增加建议仓位，也不代表你应该临近强平才补钱。</dd><small>没有额外补保证金填 0；计划额外加入 20U 就填 20</small></div>
+        <div><dt>维持保证金速算扣除额</dt><dd>部分交易所风险档位公式里的固定扣除额，单位是 USDT。只有在官方“风险限额 / 仓位档位”表中明确看到该数值时才填写；它不是手续费，也不是你已经交的保证金。</dd><small>找不到或当前档位没有扣除额就填 0</small></div>
+      </dl>
+      <div class="tutorial-note final"><b>最省心的填写顺序：</b><span>先选交易所和币种，让系统载入常用规则；再核对开仓/平仓费率；有其他仓位就填写“已占用风险”；会跨资金费时间再填写预计资金费。最小数量、步长、MMR 和扣除额只有在交易所规则页显示不同的时候才改。</span></div>
+    </section></template>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <dialog id="infoDialog">
+    <div class="dialog-head"><div><p class="eyebrow" id="dialogEyebrow">方法说明</p><h2 id="dialogTitle">计算口径</h2></div><button type="button" id="closeDialog" aria-label="关闭">×</button></div>
+    <div class="dialog-body" id="dialogBody"></div>
+  </dialog>
+
+  <script type="module" src="./app.mjs"></script>
+</body>
+</html>
