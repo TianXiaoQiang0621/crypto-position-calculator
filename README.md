@@ -2,7 +2,7 @@
 
 一个面向合约与现货交易的仓位、风险和下单数量计算器。计算时会同时考虑止损距离、手续费、滑点、资金费、保证金占用，以及交易所的最小数量、数量步长和最低名义价值。
 
-在线版本：<https://position-risk-calculator.tianxiaoqiang.chatgpt.site>
+在线演示：<https://jsq.tianevan.com/>
 
 ## 主要功能
 
