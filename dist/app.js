@@ -1,4 +1,4 @@
-import { EXCHANGE_DEFAULTS, calculatePosition, makeDefaultState, quoteAmountToBaseQty } from "./core.js?v=20260927-1";
+import { EXCHANGE_DEFAULTS, calculatePosition, makeDefaultState, quoteAmountToBaseQty } from "./core.js?v=20260927-2";
 
 const $ = (id) => document.getElementById(id);
 const ids = ["exchange", "market", "equity", "riskPct", "entry", "stop", "target", "leverage", "entryOrderType", "exitOrderType", "entryFee", "exitFee", "slippagePct", "fundingCost", "existingRisk", "maxMarginPct", "minQty", "qtyStep", "minNotional", "maxLeverage", "marginMode", "maintenanceMarginRate", "maintenanceDeduction", "extraMargin"];
@@ -254,7 +254,22 @@ const HELP_CONTENT = {
   entry: { title: "预计成交价应该怎么填？", body: "限价单填你的挂单价；市价单要填交易所此刻价格。稳定币金额会用这个价格换算币数，填成旧价格就会和交易所对不上。", example: "交易所当前 BTC 是 83,923.7，市价开仓就填 83923.7，不要继续使用旧计划价 83713。" },
   stop: { title: "止损价是什么？", body: "当行情证明你的判断可能错了，你准备退出的位置。止损离开仓越远，同样风险下能开的数量越小。", example: "ETH 在 4,000 做多，跌到 3,920 就认亏，止损填 3920。" },
   target: { title: "止盈价是什么？", body: "行情走对时，你计划平仓落袋的价格。计算器会按它估算扣费后的净利润。", example: "ETH 在 4,000 做多，计划涨到 4,240 平仓，止盈填 4240。" },
-  leverage: { title: "杠杆倍数是什么？", body: "杠杆决定需要占用多少保证金，也会影响强平距离。仓位数量由风险和止损决定，不应该因为杠杆高就盲目放大。", example: "1,000U 名义仓位使用 5 倍杠杆，大约占用 200U 保证金。" }
+  leverage: { title: "杠杆倍数是什么？", body: "杠杆决定需要占用多少保证金，也会影响强平距离。仓位数量由风险和止损决定，不应该因为杠杆高就盲目放大。", example: "1,000U 名义仓位使用 5 倍杠杆，大约占用 200U 保证金。" },
+  exitOrderType: { title: "止损成交怎么选？", body: "止损触发后立即按盘口成交，选 Taker / 市价；只有确认会挂在盘口等待成交时才选 Maker / 挂单。拿不准时选 Taker 更保守。", example: "你使用常见的止损市价单，就选择 Taker / 市价。" },
+  entryFee: { title: "开仓费率怎么填？", body: "填写这笔订单开仓成交时，你的账户实际会收取的手续费百分比。它要和开仓订单类型对应。", example: "交易所显示 Taker 费率 0.05%，这里填 0.05，而不是 5 或 0.0005。" },
+  exitFee: { title: "平仓费率怎么填？", body: "填写止损或止盈平仓时预计使用的费率。止损通常会立即成交，所以多数情况下按 Taker 费率填写更保守。", example: "止损市价费率是 0.05%，这里填 0.05。" },
+  slippagePct: { title: "单边滑点是什么？", body: "行情波动或盘口深度不足时，实际成交价可能比看到的价格差。这里预留一次成交可能偏离计划价的百分比，计算器会考虑开仓和离场两边。", example: "主流币可先参考 0.03；冷门币或剧烈行情要结合盘口适当加大。" },
+  fundingCost: { title: "预计资金费净成本怎么填？", body: "填写预计持仓期间全部资金费的合计金额。预计支付填正数，预计收到可以填负数；不跨资金费时间可填 0。", example: "预计一共支付 0.8U，就填 0.8；预计收到 0.5U，可以填 -0.5。" },
+  existingRisk: { title: "已占用风险是什么？", body: "其他持仓如果同时打到各自止损，预计还会亏多少钱。系统会先扣掉这部分，避免多笔交易合起来超出风险预算。", example: "其他两笔仓位触发止损共会亏 12U，这里填 12；没有其他仓位填 0。" },
+  maxMarginPct: { title: "最大保证金占比是什么？", body: "这是本单最多可以占用本金的比例，不是必须用满，也不是单笔风险。仓位同时受风险上限和资金上限限制，系统永远取更小的那个。", example: "300U账户填30，代表本单最多占用约90U保证金。即使风险填100%，仓位也不会突破这个资金上限。" },
+  minQty: { title: "最小数量是什么？", body: "交易所允许提交的最小币种数量。低于它的订单会被拒绝。通常保留内置值，只有交易所规则明确变化时才修改。", example: "最小数量是0.001 BTC，计算结果只有0.0008 BTC时就不能下单。" },
+  qtyStep: { title: "数量步长是什么？", body: "下单数量每次允许增加的最小间隔。计算器会按步长向下取整，确保不会因四舍五入超过风险上限。", example: "步长是0.001 BTC，只能填写0.001、0.002、0.003等数量。" },
+  minNotional: { title: "最小名义价值是什么？", body: "币种数量乘以开仓价得到的订单总价值必须达到这个门槛。它不是最低保证金。", example: "规则要求订单价值至少5 USDT，这里填5。" },
+  maxLeverage: { title: "该标的最大杠杆怎么填？", body: "填写交易所允许这个币种、当前风险档位使用的最高杠杆，只用于检查你输入的杠杆是否合法，不代表建议使用这么高。", example: "该币种当前档位最高允许50倍，这里填50。" },
+  marginMode: { title: "保证金模式怎么选？", body: "逐仓只使用分给这一仓位的保证金；全仓会把账户余额和其他仓位一起计算；普通现货选择现货不适用。全仓强平价必须看交易所。", example: "你在合约页面选择了逐仓，就在这里选择逐仓。" },
+  maintenanceMarginRate: { title: "维持保证金率 MMR 是什么？", body: "这是仓位维持不被强平所需的最低保证金比例，会随币种、仓位大小和风险档位变化。应以交易所当前档位为准。", example: "交易所显示 MMR 为0.4%，这里填0.4。" },
+  extraMargin: { title: "额外加入保证金是什么？", body: "填写你准备额外补进逐仓仓位的保证金，只用于调整预估强平价，不会自动放大建议仓位。", example: "没有额外补保证金填0；已经额外加入20U就填20。" },
+  maintenanceDeduction: { title: "维持保证金速算扣除额是什么？", body: "这是部分交易所风险档位强平公式中的固定扣除额，不是手续费，也不是已经缴纳的保证金。只有官方风险限额表明确给出时才填写。", example: "当前风险档位未显示扣除额或找不到该项，就填0。" }
 };
 
 async function copyResult() {

@@ -6,7 +6,7 @@
   <meta name="description" content="按账户风险、手续费、滑点与交易所下单规则计算加密货币仓位。" />
   <title>仓位计算器</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%23050505'/%3E%3Cpath d='M14 45V32h8v13zm14 0V21h8v24zm14 0V12h8v33z' fill='%23f5f5f5'/%3E%3Cpath d='M11 51h42' stroke='%232bc48a' stroke-width='3'/%3E%3C/svg%3E" />
-  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./styles.css?v=20260927-2" />
 </head>
 <body>
   <div class="shell">
@@ -139,63 +139,63 @@
             <div class="advanced-content">
               <div class="field-grid two-col compact-grid">
                 <label class="field">
-                  <span>止损成交</span>
+                  <span class="label-row">止损成交 <button class="help-button" type="button" data-help="exitOrderType">?</button></span>
                   <select id="exitOrderType"><option value="taker">Taker / 市价</option><option value="maker">Maker / 挂单</option></select>
                 </label>
                 <label class="field">
-                  <span>开仓费率</span>
+                  <span class="label-row">开仓费率 <button class="help-button" type="button" data-help="entryFee">?</button></span>
                   <div class="input-wrap"><input id="entryFee" type="number" min="0" step="0.001" value="0.05" /><b>%</b></div>
                 </label>
                 <label class="field">
-                  <span>平仓费率</span>
+                  <span class="label-row">平仓费率 <button class="help-button" type="button" data-help="exitFee">?</button></span>
                   <div class="input-wrap"><input id="exitFee" type="number" min="0" step="0.001" value="0.05" /><b>%</b></div>
                 </label>
                 <label class="field">
-                  <span>单边滑点预估</span>
+                  <span class="label-row">单边滑点预估 <button class="help-button" type="button" data-help="slippagePct">?</button></span>
                   <div class="input-wrap"><input id="slippagePct" type="number" min="0" step="0.01" value="0.03" /><b>%</b></div>
                 </label>
                 <label class="field">
-                  <span>预计资金费净成本</span>
+                  <span class="label-row">预计资金费净成本 <button class="help-button" type="button" data-help="fundingCost">?</button></span>
                   <div class="input-wrap"><input id="fundingCost" type="number" step="0.01" value="0" /><b>USDT</b></div>
                 </label>
                 <label class="field">
-                  <span>已占用风险</span>
+                  <span class="label-row">已占用风险 <button class="help-button" type="button" data-help="existingRisk">?</button></span>
                   <div class="input-wrap"><input id="existingRisk" type="number" min="0" step="any" value="0" /><b>USDT</b></div>
                 </label>
                 <label class="field">
-                  <span>最大保证金占比</span>
+                  <span class="label-row">最大保证金占比 <button class="help-button" type="button" data-help="maxMarginPct">?</button></span>
                   <div class="input-wrap"><input id="maxMarginPct" type="number" min="1" max="100" step="1" value="30" /><b>%</b></div>
                 </label>
                 <label class="field">
-                  <span>最小数量</span>
+                  <span class="label-row">最小数量 <button class="help-button" type="button" data-help="minQty">?</button></span>
                   <input id="minQty" type="number" min="0" step="any" value="0.001" />
                 </label>
                 <label class="field">
-                  <span>数量步长</span>
+                  <span class="label-row">数量步长 <button class="help-button" type="button" data-help="qtyStep">?</button></span>
                   <input id="qtyStep" type="number" min="0" step="any" value="0.001" />
                 </label>
                 <label class="field">
-                  <span>最小名义价值</span>
+                  <span class="label-row">最小名义价值 <button class="help-button" type="button" data-help="minNotional">?</button></span>
                   <div class="input-wrap"><input id="minNotional" type="number" min="0" step="any" value="100" /><b>USDT</b></div>
                 </label>
                 <label class="field">
-                  <span>该标的最大杠杆</span>
+                  <span class="label-row">该标的最大杠杆 <button class="help-button" type="button" data-help="maxLeverage">?</button></span>
                   <div class="input-wrap"><input id="maxLeverage" type="number" min="1" step="1" value="125" /><b>×</b></div>
                 </label>
                 <label class="field">
-                  <span>保证金模式</span>
+                  <span class="label-row">保证金模式 <button class="help-button" type="button" data-help="marginMode">?</button></span>
                   <select id="marginMode"><option value="isolated">逐仓（可估算强平）</option><option value="cross">全仓（强平以交易所为准）</option><option value="spot">现货不适用</option></select>
                 </label>
                 <label class="field">
-                  <span>维持保证金率 MMR</span>
+                  <span class="label-row">维持保证金率 MMR <button class="help-button" type="button" data-help="maintenanceMarginRate">?</button></span>
                   <div class="input-wrap"><input id="maintenanceMarginRate" type="number" min="0" step="0.01" value="0.4" /><b>%</b></div>
                 </label>
                 <label class="field">
-                  <span>额外加入保证金</span>
+                  <span class="label-row">额外加入保证金 <button class="help-button" type="button" data-help="extraMargin">?</button></span>
                   <div class="input-wrap"><input id="extraMargin" type="number" min="0" step="any" value="0" /><b>USDT</b></div>
                 </label>
                 <label class="field">
-                  <span>维持保证金速算扣除额</span>
+                  <span class="label-row">维持保证金速算扣除额 <button class="help-button" type="button" data-help="maintenanceDeduction">?</button></span>
                   <div class="input-wrap"><input id="maintenanceDeduction" type="number" min="0" step="any" value="0" /><b>USDT</b></div>
                 </label>
               </div>
@@ -364,6 +364,19 @@
         <div><dt>维持保证金速算扣除额</dt><dd>部分交易所风险档位公式里的固定扣除额，单位是 USDT。只有在官方“风险限额 / 仓位档位”表中明确看到该数值时才填写；它不是手续费，也不是你已经交的保证金。</dd><small>找不到或当前档位没有扣除额就填 0</small></div>
       </dl>
       <div class="tutorial-note final"><b>最省心的填写顺序：</b><span>先选交易所和币种，让系统载入常用规则；再核对开仓/平仓费率；有其他仓位就填写“已占用风险”；会跨资金费时间再填写预计资金费。最小数量、步长、MMR 和扣除额只有在交易所规则页显示不同的时候才改。</span></div>
+
+      <div class="advanced-guide-head faq-head">
+        <div><p class="eyebrow">05 / 常见疑问</p><h3>为什么我改了数字，结果却没变？</h3></div>
+        <p>计算器同时受风险、可用保证金、杠杆、交易所最小数量和数量步长约束。某一项已经卡住仓位时，继续放宽另一项不会把仓位变大。</p>
+      </div>
+      <div class="faq-grid">
+        <article><h4>单笔风险从 100% 改成 30%，止盈净赚为什么不变？</h4><p>因为仓位已经碰到资金上限。比如本金 10,000U、5倍杠杆、最大保证金占比100%，最多只能控制约50,000U仓位；默认止损下实际最多亏约10.79%本金。风险填30%或100%都高于它，所以仓位和利润相同。<b>“单笔风险”是最多允许亏多少，不是必须亏满。</b></p></article>
+        <article><h4>杠杆调高了，下单数量为什么没变？</h4><p>如果仓位由止损距离和单笔风险决定，杠杆只会减少保证金占用，不会自动放大仓位。只有原本受保证金上限限制时，提高杠杆才可能让仓位增加。</p></article>
+        <article><h4>风险额度为什么没有用到100%？</h4><p>交易所数量必须按步长向下取整，而且系统还会遵守最大保证金占比。少用一点风险是为了不超过你设定的亏损上限，不是漏算。</p></article>
+        <article><h4>USDT下单金额为什么比保证金大？</h4><p>USDT下单金额是订单控制的总价值，保证金只是交易所暂时占用的本金。5倍杠杆下，约1,000U名义仓位通常只需约200U初始保证金。</p></article>
+        <article><h4>为什么和交易所显示的数量或保证金有差异？</h4><p>先核对实际成交价、币数/张数单位、Maker或Taker费率、数量步长、风险档位和保证金模式。市价变化、合约面值和账户等级都会造成差异。</p></article>
+        <article><h4>为什么没有显示确定的强平价？</h4><p>全仓会受到整个账户余额、其他仓位和未实现盈亏影响，普通现货也没有合约强平价。只有逐仓且规则参数完整时，页面才提供近似估算，最终仍以交易所为准。</p></article>
+      </div>
     </section></template>
   </div>
 
@@ -374,6 +387,6 @@
     <div class="dialog-body" id="dialogBody"></div>
   </dialog>
 
-  <script type="module" src="./app.js?v=20260927-1"></script>
+  <script type="module" src="./app.js?v=20260927-2"></script>
 </body>
 </html>
