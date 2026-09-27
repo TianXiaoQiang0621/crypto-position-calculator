@@ -26,6 +26,14 @@ node .\scripts\preview-worker.mjs
 
 随后在浏览器打开：<http://127.0.0.1:4173/>
 
+## 宝塔部署与更新
+
+1. 网站目录使用 Git 仓库根目录，网站运行目录设置为 `/dist`。
+2. GitHub 有新版本后，在宝塔的 Git 部署页面执行“拉取 / 更新”；也可以进入网站目录运行 `git pull origin main`。
+3. 更新完成后清除宝塔网站缓存，并在浏览器按 `Ctrl + F5` 强制刷新。
+
+页面交互脚本使用标准 `.js` 文件，兼容宝塔默认 Nginx 类型配置。若页面只有静态文字、输入后结果不变化，请先确认线上 `/app.js` 与 `/core.js` 返回 `200`，且响应类型为 `text/javascript` 或 `application/javascript`。
+
 ## 检查计算结果
 
 ```powershell
@@ -38,8 +46,8 @@ node --test .\tests\calculator.test.mjs .\tests\worker.test.mjs
 dist/
   index.html          页面结构
   styles.css          页面样式
-  app.mjs             页面交互与结果展示
-  core.mjs            仓位计算核心
+  app.js              页面交互与结果展示
+  core.js             仓位计算核心
   server/index.js     发布使用的 Worker 文件
 scripts/
   build-worker.mjs    生成 Worker 文件

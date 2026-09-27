@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { calculatePosition, floorToStep, makeDefaultState, quoteAmountToBaseQty } from "../dist/core.mjs";
+import { calculatePosition, floorToStep, makeDefaultState, quoteAmountToBaseQty } from "../dist/core.js";
 
 const approx = (actual, expected, tolerance = 1e-8) => assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} ≉ ${expected}`);
 

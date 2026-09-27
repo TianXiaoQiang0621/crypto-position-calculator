@@ -1,4 +1,4 @@
-import { EXCHANGE_DEFAULTS, calculatePosition, makeDefaultState, quoteAmountToBaseQty } from "./core.mjs";
+import { EXCHANGE_DEFAULTS, calculatePosition, makeDefaultState, quoteAmountToBaseQty } from "./core.js?v=20260927-1";
 
 const $ = (id) => document.getElementById(id);
 const ids = ["exchange", "market", "equity", "riskPct", "entry", "stop", "target", "leverage", "entryOrderType", "exitOrderType", "entryFee", "exitFee", "slippagePct", "fundingCost", "existingRisk", "maxMarginPct", "minQty", "qtyStep", "minNotional", "maxLeverage", "marginMode", "maintenanceMarginRate", "maintenanceDeduction", "extraMargin"];
